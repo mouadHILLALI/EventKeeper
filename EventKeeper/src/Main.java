@@ -1,7 +1,7 @@
-import controller.Menu;
+import controller.MenuController;
 public class Main {
     public static void main(String[] args) {
-        Menu menu = new Menu();
-        menu.menuDisplay();
+        MenuController menuController = new MenuController();
+        menuController.menuDisplay();
     }
 }

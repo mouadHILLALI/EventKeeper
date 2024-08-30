@@ -1,6 +1,6 @@
 package controller;
 import java.util.Scanner;
-public class Menu {
+public class MenuController {
     public void menuDisplay(){
         int userChoice ;
           System.out.println(" __      __       .__                                  __           ___________                    __   ____  __.                                 \n" +
