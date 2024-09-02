@@ -1,7 +1,13 @@
 package controller;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.Scanner;
 import service.UserServices;
 import entity.User;
+import service.EventServices;
+import entity.Event;
 public class MenuController {
     public void menuDisplay(){
         int userChoice ;
@@ -18,7 +24,6 @@ public class MenuController {
               switch (userChoice) {
                   case 1:
                       signInController();
-                      menuDisplay();
                       break;
                   case 2:
                       signUpController();
@@ -41,7 +46,7 @@ public class MenuController {
             UserServices userServices = new UserServices();
             Scanner scanner = new Scanner(System.in);
             System.out.println("Enter your username: ");
-            String username = scanner.nextLine().toLowerCase();
+            String username = scanner.nextLine().toLowerCase().trim();
             if (username.isEmpty()) {
                 System.out.println("Please enter a valid username.");
                 signUpController();
@@ -56,13 +61,187 @@ public class MenuController {
         Scanner scanner = new Scanner(System.in);
         try {
             System.out.println("Enter your username: ");
-            String username = scanner.nextLine().toLowerCase();
+            String username = scanner.nextLine().toLowerCase().trim();
             User user = UserServices.signIn(username);
-            System.out.println("You have successfully signed in, " + user.getUsername() + " (User ID: " + user.getId() + ")");
+           if (username.equals("admin")){
+               adminController();
+           }
         } catch (Exception e) {
             System.err.println("An error occurred during sign-in: " + e.getMessage());
         } finally {
             scanner.close();
         }
+
+    }
+    public void adminController(){
+        System.out.println("1.Events Management\n2.Participants Management\n3.Stats\n0.return to main menu");
+        try {
+            Scanner scanner = new Scanner(System.in);
+            int userChoice = scanner.nextInt();
+            switch (userChoice){
+                case 1 :
+                    eventController();
+                    break;
+                case 2 :
+                    participantController();
+                    break;
+                case 3 :
+                    statsController();
+                    break;
+                case 0 :
+                    menuDisplay();
+                    break;
+                default:
+                    adminController();
+                    break;
+            }
+        } catch (Exception e) {
+            System.err.println("An error occurred: " + e.getMessage());
+            adminController();
+        }
+    }
+    public void eventController(){
+        EventServices eventServices = new EventServices();
+        Scanner scanner = new Scanner(System.in);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date date;
+        int userChoice;
+
+        do {
+            System.out.println("1.Add Event\n2.Edit Event\n3.Delete Event\n4.Display all Events\n5.Search for an event\n0.Return to Admin Menu");
+            userChoice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (userChoice) {
+                case 1:
+                    System.out.println("Enter event name: ");
+                    String name = scanner.nextLine().toLowerCase().trim();
+                    System.out.println("Enter event description: ");
+                    String description = scanner.nextLine().toLowerCase().trim();
+                    System.out.println("Enter event type: ");
+                    String type = scanner.nextLine().toLowerCase().trim();
+                    System.out.println("Enter event location: ");
+                    String location = scanner.nextLine().toLowerCase().trim();
+                    System.out.println("Enter event date dd/MM/yyyy: ");
+                    String dateStr = scanner.nextLine();
+                    try {
+                        date = sdf.parse(dateStr);
+                        eventServices.addEvent(name, description, type, location, date);
+                        System.out.println("You have successfully added the event.");
+                    } catch (ParseException e) {
+                        System.out.println("Invalid date format. Please enter the date in the format dd/MM/yyyy.");
+                    }
+                    break;
+
+                case 2:
+                    System.out.println("Enter event ID: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+                    Event event = eventServices.getEvent(id);
+                    if (event != null) {
+                        System.out.println("Enter event new name (leave blank to keep '" + event.getName() + "'): ");
+                        name = scanner.nextLine().toLowerCase().trim();
+                        name = name.isEmpty() ? event.getName() : name;
+
+                        System.out.println("Enter event new description (leave blank to keep '" + event.getDescription() + "'): ");
+                        description = scanner.nextLine().toLowerCase().trim();
+                        description = description.isEmpty() ? event.getDescription() : description;
+
+                        System.out.println("Enter event new type (leave blank to keep '" + event.getType() + "'): ");
+                        type = scanner.nextLine().toLowerCase().trim();
+                        type = type.isEmpty() ? event.getType() : type;
+
+                        System.out.println("Enter event new location (leave blank to keep '" + event.getLocation() + "'): ");
+                        location = scanner.nextLine().toLowerCase().trim();
+                        location = location.isEmpty() ? event.getLocation() : location;
+
+                        System.out.println("Enter event new date (leave blank to keep '" + sdf.format(event.getDate()) + "'): ");
+                        dateStr = scanner.nextLine();
+                        if (dateStr.isEmpty()) {
+                            date = event.getDate();
+                        } else {
+                            try {
+                                date = sdf.parse(dateStr);
+                            } catch (ParseException e) {
+                                System.out.println("Invalid date format. Please enter the date in the format dd/MM/yyyy.");
+                                break;
+                            }
+                        }
+                        eventServices.editEvent(id, name, description, type, location, date);
+                        System.out.println("Event successfully updated.");
+                    } else {
+                        System.out.println("Event does not exist.");
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("Enter event ID: ");
+                    int idToDelete = scanner.nextInt();
+                    scanner.nextLine();
+                    Event eventToDelete = eventServices.getEvent(idToDelete);
+                    if (eventToDelete != null) {
+                        eventServices.deleteEvent(idToDelete);
+                        System.out.println("Event successfully deleted.");
+                    } else {
+                        System.out.println("Event does not exist.");
+                    }
+                    break;
+
+                case 4:
+                    System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                            "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
+
+                    LinkedList<Event> events = eventServices.getEvents();
+                    for (Event e : events) {
+                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                                e.getId(),
+                                e.getName(),
+                                e.getDescription(),
+                                e.getType(),
+                                e.getLocation(),
+                                sdf.format(e.getDate())
+                        );
+                    }
+                    break;
+
+                case 5:
+                    System.out.println("Enter event ID: ");
+                    int idToSearch = scanner.nextInt();
+                    scanner.nextLine();
+                    Event eventToSearch = eventServices.getEvent(idToSearch);
+                    if (eventToSearch != null) {
+                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                                "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
+                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                                eventToSearch.getId(),
+                                eventToSearch.getName(),
+                                eventToSearch.getDescription(),
+                                eventToSearch.getType(),
+                                eventToSearch.getLocation(),
+                                sdf.format(eventToSearch.getDate())
+                        );
+                    } else {
+                        System.out.println("Event does not exist.");
+                    }
+                    break;
+
+                case 0:
+                    System.out.println("Returning to Admin Menu...");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please try again.");
+                    break;
+            }
+        } while (userChoice != 0);
+
+
+    }
+
+    public void participantController(){
+        System.out.println("Enter your participant: ");
+    }
+    public void statsController(){
+        System.out.println("Enter your stats: ");
     }
 }
