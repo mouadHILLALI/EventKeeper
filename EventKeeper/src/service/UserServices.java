@@ -5,6 +5,7 @@ import entity.User;
 public class UserServices {
     Random rand = new Random();
     static LinkedList<User> users = new LinkedList<>();
+    entity.User User ;
     public static User signIn(String username) {
         try {
             for (User user : users) {
@@ -27,4 +28,24 @@ public class UserServices {
             signUp(username);
         }
     }
+    public User getUser(int id) {
+        User user = users.get(id);
+        if (user !=null) {
+            return user;
+        }
+        return null;
     }
+    public void deleteUser(int id) {
+        User user = getUser(id);
+        if (user != null) {
+            users.remove(user);
+            System.out.println("User removed successfully.");
+        } else {
+            System.out.println("No user was found.");
+        }
+    }
+
+    public LinkedList<User> getUsers() {
+        return users;
+    }
+}

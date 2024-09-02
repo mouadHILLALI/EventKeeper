@@ -2,6 +2,7 @@ package controller;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.Scanner;
 import service.UserServices;
@@ -83,7 +84,7 @@ public class MenuController {
                     eventController();
                     break;
                 case 2 :
-                    participantController();
+                    participantManagementController();
                     break;
                 case 3 :
                     statsController();
@@ -238,8 +239,66 @@ public class MenuController {
 
     }
 
-    public void participantController(){
-        System.out.println("Enter your participant: ");
+    public void participantManagementController(){
+        int userChoice = -1;
+        Scanner scanner = new Scanner(System.in);
+      do {
+          System.out.println("1.Add Participant\n2.Remove a Participant\n3.Display all Participants\n0.Return to Main Menu");
+            try {
+                userChoice = scanner.nextInt();
+                scanner.nextLine();
+                switch (userChoice){
+                    case 1 :
+                        System.out.println("Enter Participant Username: ");
+                        String name = scanner.nextLine().toLowerCase().trim();
+                        UserServices userServices = new UserServices();
+                        if (!name.isEmpty()) {
+                        userServices.signUp(name);
+                        System.out.println("You have successfully added the participant");
+                        }else{
+                            System.out.println("Please enter a valid username.");
+                            participantManagementController();
+                        }
+                        break;
+                    case 2:
+                        try {
+                            System.out.println("Enter Participant ID: ");
+                            int id = scanner.nextInt();
+                            scanner.nextLine();
+                            UserServices userServices1 = new UserServices();
+                            User user = userServices1.getUser(id);
+                            if (user != null) {
+                                userServices1.deleteUser(id);
+                                System.out.println("User deleted successfully.");
+                            } else {
+                                System.out.println("User does not exist.");
+                            }
+                        } catch (Exception e) {
+                            System.err.println("An unexpected error occurred: " + e.getMessage());
+                        }
+                        break;
+
+                    case 3 :
+                        System.out.printf("%-10s %-20s\n",
+                                "Participant ID", "Participant Name");
+                        UserServices userServices2 = new UserServices();
+                        LinkedList<User> user = userServices2.getUsers();
+                        for (User u : user) {
+                            System.out.printf("%-10s %-20s\n",
+                                   u.getId(),
+                                    u.getUsername()
+                            );
+                        }
+                        break;
+                    case 0 :
+                        System.out.println("Returning to Main Menu...");
+                        adminController();
+                        break;
+                }
+            }catch (Exception e){
+                System.err.println("An error occurred: " + e.getMessage());
+            }
+      }while (userChoice!=0);
     }
     public void statsController(){
         System.out.println("Enter your stats: ");
