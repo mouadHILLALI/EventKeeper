@@ -10,6 +10,7 @@ import entity.User;
 import service.EventServices;
 import entity.Event;
 public class MenuController {
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     public void menuDisplay(){
         int userChoice ;
           System.out.println(" __      __       .__                                  __           ___________                    __   ____  __.                                 \n" +
@@ -66,6 +67,10 @@ public class MenuController {
             User user = UserServices.signIn(username);
            if (username.equals("admin")){
                adminController();
+           }else if(user!=null) {
+               participantController();
+           }else {
+               System.out.println("Please enter a valid username.");
            }
         } catch (Exception e) {
             System.err.println("An error occurred during sign-in: " + e.getMessage());
@@ -104,7 +109,7 @@ public class MenuController {
     public void eventController(){
         EventServices eventServices = new EventServices();
         Scanner scanner = new Scanner(System.in);
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+      
         Date date;
         int userChoice;
 
@@ -228,6 +233,7 @@ public class MenuController {
 
                 case 0:
                     System.out.println("Returning to Admin Menu...");
+                    adminController();
                     break;
 
                 default:
@@ -303,4 +309,57 @@ public class MenuController {
     public void statsController(){
         System.out.println("Enter your stats: ");
     }
+
+    public void participantController() {
+        int userChoice;
+        Scanner scanner = new Scanner(System.in);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        do {
+            System.out.println("1.Display Events\n2.Reserve an event\n3.Display Event Reservations\n0.Return to Main Menu");
+            userChoice = scanner.nextInt();
+
+            switch (userChoice) {
+                case 1:
+                    System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                            "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
+
+                    EventServices eventServices = new EventServices();
+                    LinkedList<Event> events = eventServices.getEvents();
+
+                    if (events == null) {
+                        System.out.println("No events found. The event list is null.");
+                    } else if (events.isEmpty()) {
+                        System.out.println("No events found. The event list is empty.");
+                    } else {
+                        for (Event e : events) {
+                            System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                                    e.getId(),
+                                    e.getName(),
+                                    e.getDescription(),
+                                    e.getType(),
+                                    e.getLocation(),
+                                    sdf.format(e.getDate())
+                            );
+                        }
+                    }
+                    break;
+                case 2:
+
+                    break;
+                case 3:
+
+                    break;
+                case 0:
+                    System.out.println("Returning to Main Menu...");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (userChoice != 0);
+
+        scanner.close();
+    }
+
+
 }

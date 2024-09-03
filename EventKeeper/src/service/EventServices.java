@@ -6,7 +6,7 @@ import java.util.LinkedList;
 public class EventServices {
     entity.Event event;
     Random rand = new Random();
-    LinkedList<Event> events = new LinkedList<>();
+    private static LinkedList<Event> events = new LinkedList<>();
     public void addEvent(String name , String description , String type , String location , Date date){
         int id = rand.nextInt(10000);
         event = new Event(id ,  name , description , type , date , location);
