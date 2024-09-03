@@ -29,21 +29,27 @@ public class UserServices {
         }
     }
     public User getUser(int id) {
-        User user = users.get(id);
-        if (user !=null) {
-            return user;
+        for (User user : users) {
+            if (user.getId() == id) {
+                return user;
+            }
         }
         return null;
     }
     public void deleteUser(int id) {
         User user = getUser(id);
         if (user != null) {
-            users.remove(user);
-            System.out.println("User removed successfully.");
+            boolean removed = users.remove(user);
+            if (removed) {
+                System.out.println("User removed successfully.");
+            } else {
+                System.out.println("Failed to remove the user.");
+            }
         } else {
             System.out.println("No user was found.");
         }
     }
+
 
     public LinkedList<User> getUsers() {
         return users;
