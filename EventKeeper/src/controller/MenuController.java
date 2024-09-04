@@ -5,6 +5,9 @@ import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.Scanner;
+
+import entity.Reservation;
+import service.ReservationServices;
 import service.UserServices;
 import entity.User;
 import service.EventServices;
@@ -68,7 +71,7 @@ public class MenuController {
            if (username.equals("admin")){
                adminController();
            }else if(user!=null) {
-               participantController();
+               participantController(user);
            }else {
                System.out.println("Please enter a valid username.");
            }
@@ -310,8 +313,9 @@ public class MenuController {
         System.out.println("Enter your stats: ");
     }
 
-    public void participantController() {
+    public void participantController(User user) {
         int userChoice;
+        int userID = user.getId();
         Scanner scanner = new Scanner(System.in);
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -345,10 +349,46 @@ public class MenuController {
                     }
                     break;
                 case 2:
-
+                    try {
+                        System.out.println("Enter Event ID: ");
+                        int eventID = scanner.nextInt();
+                        EventServices event = new EventServices();
+                        Event event1 = event.getEvent(eventID);
+                        if (event1 != null) {
+                            ReservationServices reservationServices = new ReservationServices();
+                            reservationServices.reserveEvent(userID, eventID);
+                            System.out.println("the Event was reserved successfully.");
+                        }else {
+                            System.out.println("Event does not exist.");
+                        }
+                    }catch (Exception e){
+                        System.out.println(e.getMessage());
+                    }
                     break;
                 case 3:
+                    try {
+                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                                "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
 
+                        LinkedList<Event> reservedEvents = getEvents(userID);
+
+                        if (reservedEvents.isEmpty()) {
+                            System.out.println("You have no reserved events.");
+                        } else {
+                            for (Event e : reservedEvents) {
+                                System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                                        e.getId(),
+                                        e.getName(),
+                                        e.getDescription(),
+                                        e.getType(),
+                                        e.getLocation(),
+                                        sdf.format(e.getDate())
+                                );
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("An error occurred: " + e.getMessage());
+                    }
                     break;
                 case 0:
                     System.out.println("Returning to Main Menu...");
@@ -359,6 +399,24 @@ public class MenuController {
         } while (userChoice != 0);
 
         scanner.close();
+    }
+
+    private static LinkedList<Event> getEvents(int userID) {
+        ReservationServices reservationServices = new ReservationServices();
+        LinkedList<Reservation> reservations = reservationServices.getReservations();
+        LinkedList<Event> reservedEvents = new LinkedList<>();
+
+        EventServices eventServices2 = new EventServices();
+
+        for (Reservation r : reservations) {
+            if (r.getParticipantId() == userID) {
+                Event event = eventServices2.getEvent(r.getEventId());
+                if (event != null) {
+                    reservedEvents.add(event);
+                }
+            }
+        }
+        return reservedEvents;
     }
 
 
