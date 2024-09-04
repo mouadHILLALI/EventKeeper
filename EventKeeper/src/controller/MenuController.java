@@ -2,10 +2,9 @@ package controller;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.Scanner;
-
+import javax.swing.JOptionPane;
 import entity.Reservation;
 import service.ReservationServices;
 import service.UserServices;
@@ -15,213 +14,265 @@ import entity.Event;
 public class MenuController {
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     public void menuDisplay(){
-        int userChoice ;
-          System.out.println(" __      __       .__                                  __           ___________                    __   ____  __.                                 \n" +
+        String asciiArt = " __      __       .__                                  __           ___________                    __   ____  __.                                 \n" +
                 "/  \\    /  \\ ____ |  |   ____  ____   _____   ____   _/  |_  ____   \\_   _____/__  __ ____   _____/  |_|    |/ _|____   ____ ______   ___________ \n" +
                 "\\   \\/\\/   // __ \\|  | _/ ___\\/  _ \\ /     \\_/ __ \\  \\   __\\/  _ \\   |    __)_\\  \\/ // __ \\ /    \\   __\\      <_/ __ \\_/ __ \\\\____ \\_/ __ \\_  __ \\\n" +
                 " \\        /\\  ___/|  |_\\  \\__(  <_> )  Y Y  \\  ___/   |  | (  <_> )  |        \\\\   /\\  ___/|   |  \\  | |    |  \\  ___/\\  ___/|  |_> >  ___/|  | \\/\n" +
                 "  \\__/\\  /  \\___  >____/\\___  >____/|__|_|  /\\___  >  |__|  \\____/  /_______  / \\_/  \\___  >___|  /__| |____|__ \\___  >\\___  >   __/ \\___  >__|   \n" +
-                "       \\/       \\/          \\/            \\/     \\/                         \\/           \\/     \\/             \\/   \\/     \\/|__|        \\/       ");
-          System.out.println("1.Sign in\n2.Sign up\n0.Quit");
-          try {
-              Scanner scanner = new Scanner(System.in);
-              userChoice = scanner.nextInt();
-              switch (userChoice) {
-                  case 1:
-                      signInController();
-                      break;
-                  case 2:
-                      signUpController();
-                      menuDisplay();
-                      break;
-                  case 0:
-                      System.out.println("welcome");
-                      break;
-                  default:
-                      menuDisplay();
-              }
-          } catch (Exception e) {
-              System.out.println("Invalid input. Please enter a valid choice.");
-              menuDisplay();
-          }
+                "       \\/       \\/          \\/            \\/     \\/                         \\/           \\/     \\/             \\/   \\/     \\/|__|        \\/       ";
 
-    }
-    public void signUpController(){
-        try {
-            UserServices userServices = new UserServices();
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Enter your username: ");
-            String username = scanner.nextLine().toLowerCase().trim();
-            if (username.isEmpty()) {
-                System.out.println("Please enter a valid username.");
-                signUpController();
+        // Display the ASCII art
+        JOptionPane.showMessageDialog(null, asciiArt, "Welcome", JOptionPane.INFORMATION_MESSAGE);
+
+        String userChoice = JOptionPane.showInputDialog("1. Sign in\n2. Sign up\n0. Quit");
+        if (userChoice != null) {
+            int choice = Integer.parseInt(userChoice);
+            try {
+                Scanner scanner = new Scanner(System.in);
+                switch (choice) {
+                    case 1:
+                        signInController();
+                        break;
+                    case 2:
+                        signUpController();
+                        menuDisplay();
+                        break;
+                    case 0:
+                        JOptionPane.showInputDialog("welcome");
+                        break;
+                    default:
+                        menuDisplay();
+                }
+            } catch (Exception e) {
+                JOptionPane.showInputDialog("Invalid input. Please enter a valid choice.");
+                menuDisplay();
             }
-            userServices.signUp(username);
-            System.out.println("you have successfully signed up ");
-        } catch (Exception e) {
-            signUpController();
-        }
-    }
-    public void signInController() {
-        Scanner scanner = new Scanner(System.in);
-        try {
-            System.out.println("Enter your username: ");
-            String username = scanner.nextLine().toLowerCase().trim();
-            User user = UserServices.signIn(username);
-           if (username.equals("admin")){
-               adminController();
-           }else if(user!=null) {
-               participantController(user);
-           }else {
-               System.out.println("Please enter a valid username.");
-           }
-        } catch (Exception e) {
-            System.err.println("An error occurred during sign-in: " + e.getMessage());
-        } finally {
-            scanner.close();
         }
 
+
     }
-    public void adminController(){
-        System.out.println("1.Events Management\n2.Participants Management\n3.Stats\n0.return to main menu");
+    public void signUpController() {
+        UserServices userServices = new UserServices();
+        String username = JOptionPane.showInputDialog("Enter your username: ");
+
+        if (username == null || username.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid username.");
+            return;
+        }
+
         try {
-            Scanner scanner = new Scanner(System.in);
-            int userChoice = scanner.nextInt();
-            switch (userChoice){
-                case 1 :
+            userServices.signUp(username.toLowerCase().trim());
+            JOptionPane.showMessageDialog(null, "You have successfully signed up.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "An error occurred during sign-up. Please try again.");
+            e.printStackTrace();
+        }
+    }
+
+    public void signInController() {
+        try {
+            // Prompt for username input
+            String username = JOptionPane.showInputDialog("Enter your username:");
+
+            // Handle the case where the user cancels the input dialog
+            if (username == null || username.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please enter a valid username.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;  // Exit the method if no valid input is provided
+            }
+
+            // Attempt to sign in the user
+            User user = UserServices.signIn(username.toLowerCase().trim());
+
+            // Check if the user is an admin
+            if (username.equalsIgnoreCase("admin")) {
+                adminController();  // Direct admin to the admin menu
+            }
+            // If user exists, direct to participant menu
+            else if (user != null) {
+                participantController(user);
+            }
+            // If user does not exist, show an error message
+            else {
+                JOptionPane.showMessageDialog(null, "Invalid username. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            // Handle any unexpected errors during the sign-in process
+            JOptionPane.showMessageDialog(null, "An error occurred during sign-in: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();  // Optionally log the error for debugging purposes
+        }
+    }
+
+    public void adminController() {
+        try {
+            // Display menu options to the admin and capture their choice
+            String userChoiceStr = JOptionPane.showInputDialog(
+                    "1. Events Management\n" +
+                            "2. Participants Management\n" +
+                            "3. Stats\n" +
+                            "0. Return to Main Menu\n\n" +
+                            "Enter your choice:");
+
+            // If the user cancels the input or provides invalid input, handle it gracefully
+            if (userChoiceStr == null) {
+                return;  // Exit the method if the user cancels the input
+            }
+
+            // Parse the user choice to an integer
+            int userChoice;
+            try {
+                userChoice = Integer.parseInt(userChoiceStr.trim());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                adminController();  // Restart the admin controller on invalid input
+                return;  // Exit to avoid further processing
+            }
+
+            // Execute the appropriate action based on the user's choice
+            switch (userChoice) {
+                case 1:
                     eventController();
                     break;
-                case 2 :
+                case 2:
                     participantManagementController();
                     break;
-                case 3 :
+                case 3:
                     statsController();
                     break;
-                case 0 :
+                case 0:
                     menuDisplay();
                     break;
                 default:
-                    adminController();
+                    JOptionPane.showMessageDialog(null, "Invalid option. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                    adminController();  // Restart the admin controller on invalid option
                     break;
             }
         } catch (Exception e) {
-            System.err.println("An error occurred: " + e.getMessage());
-            adminController();
+            // Log and display any unexpected errors
+            JOptionPane.showMessageDialog(null, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();  // Optionally log the error for debugging purposes
+            adminController();  // Restart the admin controller after handling the error
         }
     }
-    public void eventController(){
+
+    public void eventController() {
         EventServices eventServices = new EventServices();
-        Scanner scanner = new Scanner(System.in);
-      
         Date date;
-        int userChoice;
+        int userChoice = 0;
 
         do {
-            System.out.println("1.Add Event\n2.Edit Event\n3.Delete Event\n4.Display all Events\n5.Search for an event\n0.Return to Admin Menu");
-            userChoice = scanner.nextInt();
-            scanner.nextLine();
+            // Display the event management options and capture the user's choice
+            String userChoiceStr = JOptionPane.showInputDialog(
+                    "1. Add Event\n" +
+                            "2. Edit Event\n" +
+                            "3. Delete Event\n" +
+                            "4. Display all Events\n" +
+                            "5. Search for an event\n" +
+                            "0. Return to Admin Menu\n\n" +
+                            "Enter your choice:");
+
+            // Handle null input (e.g., if the user cancels the input dialog)
+            if (userChoiceStr == null) {
+                return;  // Exit the method if the user cancels the input
+            }
+
+            try {
+                userChoice = Integer.parseInt(userChoiceStr.trim());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                continue;  // Restart the loop if the input is invalid
+            }
 
             switch (userChoice) {
                 case 1:
-                    System.out.println("Enter event name: ");
-                    String name = scanner.nextLine().toLowerCase().trim();
-                    System.out.println("Enter event description: ");
-                    String description = scanner.nextLine().toLowerCase().trim();
-                    System.out.println("Enter event type: ");
-                    String type = scanner.nextLine().toLowerCase().trim();
-                    System.out.println("Enter event location: ");
-                    String location = scanner.nextLine().toLowerCase().trim();
-                    System.out.println("Enter event date dd/MM/yyyy: ");
-                    String dateStr = scanner.nextLine();
+                    String name = JOptionPane.showInputDialog("Enter event name:").toLowerCase().trim();
+                    String description = JOptionPane.showInputDialog("Enter event description:").toLowerCase().trim();
+                    String type = JOptionPane.showInputDialog("Enter event type:").toLowerCase().trim();
+                    String location = JOptionPane.showInputDialog("Enter event location:").toLowerCase().trim();
+                    String dateStr = JOptionPane.showInputDialog("Enter event date (dd/MM/yyyy):");
+
                     try {
                         date = sdf.parse(dateStr);
                         eventServices.addEvent(name, description, type, location, date);
-                        System.out.println("You have successfully added the event.");
+                        JOptionPane.showMessageDialog(null, "Event successfully added.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     } catch (ParseException e) {
-                        System.out.println("Invalid date format. Please enter the date in the format dd/MM/yyyy.");
+                        JOptionPane.showMessageDialog(null, "Invalid date format. Please enter the date in the format dd/MM/yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     break;
 
                 case 2:
-                    System.out.println("Enter event ID: ");
-                    int id = scanner.nextInt();
-                    scanner.nextLine();
+                    String idStr = JOptionPane.showInputDialog("Enter event ID:");
+                    if (idStr == null || idStr.trim().isEmpty()) {
+                        break;  // If no ID is entered, exit the case
+                    }
+
+                    int id = Integer.parseInt(idStr.trim());
                     Event event = eventServices.getEvent(id);
                     if (event != null) {
-                        System.out.println("Enter event new name (leave blank to keep '" + event.getName() + "'): ");
-                        name = scanner.nextLine().toLowerCase().trim();
-                        name = name.isEmpty() ? event.getName() : name;
+                        name = JOptionPane.showInputDialog("Enter event new name (leave blank to keep '" + event.getName() + "'):");
+                        description = JOptionPane.showInputDialog("Enter event new description (leave blank to keep '" + event.getDescription() + "'):");
+                        type = JOptionPane.showInputDialog("Enter event new type (leave blank to keep '" + event.getType() + "'):");
+                        location = JOptionPane.showInputDialog("Enter event new location (leave blank to keep '" + event.getLocation() + "'):");
+                        dateStr = JOptionPane.showInputDialog("Enter event new date (leave blank to keep '" + sdf.format(event.getDate()) + "'):");
 
-                        System.out.println("Enter event new description (leave blank to keep '" + event.getDescription() + "'): ");
-                        description = scanner.nextLine().toLowerCase().trim();
-                        description = description.isEmpty() ? event.getDescription() : description;
+                        name = name.isEmpty() ? event.getName() : name.toLowerCase().trim();
+                        description = description.isEmpty() ? event.getDescription() : description.toLowerCase().trim();
+                        type = type.isEmpty() ? event.getType() : type.toLowerCase().trim();
+                        location = location.isEmpty() ? event.getLocation() : location.toLowerCase().trim();
 
-                        System.out.println("Enter event new type (leave blank to keep '" + event.getType() + "'): ");
-                        type = scanner.nextLine().toLowerCase().trim();
-                        type = type.isEmpty() ? event.getType() : type;
-
-                        System.out.println("Enter event new location (leave blank to keep '" + event.getLocation() + "'): ");
-                        location = scanner.nextLine().toLowerCase().trim();
-                        location = location.isEmpty() ? event.getLocation() : location;
-
-                        System.out.println("Enter event new date (leave blank to keep '" + sdf.format(event.getDate()) + "'): ");
-                        dateStr = scanner.nextLine();
                         if (dateStr.isEmpty()) {
                             date = event.getDate();
                         } else {
                             try {
                                 date = sdf.parse(dateStr);
                             } catch (ParseException e) {
-                                System.out.println("Invalid date format. Please enter the date in the format dd/MM/yyyy.");
+                                JOptionPane.showMessageDialog(null, "Invalid date format. Please enter the date in the format dd/MM/yyyy.", "Error", JOptionPane.ERROR_MESSAGE);
                                 break;
                             }
                         }
                         eventServices.editEvent(id, name, description, type, location, date);
-                        System.out.println("Event successfully updated.");
+                        JOptionPane.showMessageDialog(null, "Event successfully updated.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        System.out.println("Event does not exist.");
+                        JOptionPane.showMessageDialog(null, "Event does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     break;
 
                 case 3:
-                    System.out.println("Enter event ID: ");
-                    int idToDelete = scanner.nextInt();
-                    scanner.nextLine();
+                    idStr = JOptionPane.showInputDialog("Enter event ID:");
+                    if (idStr == null || idStr.trim().isEmpty()) {
+                        break;  // If no ID is entered, exit the case
+                    }
+
+                    int idToDelete = Integer.parseInt(idStr.trim());
                     Event eventToDelete = eventServices.getEvent(idToDelete);
                     if (eventToDelete != null) {
                         eventServices.deleteEvent(idToDelete);
-                        System.out.println("Event successfully deleted.");
+                        JOptionPane.showMessageDialog(null, "Event successfully deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        System.out.println("Event does not exist.");
+                        JOptionPane.showMessageDialog(null, "Event does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     break;
 
                 case 4:
-                    System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
-                            "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
-
+                    StringBuilder eventsList = new StringBuilder("Event ID | Event Name | Event Description | Event Type | Event Location | Event Date\n");
                     LinkedList<Event> events = eventServices.getEvents();
                     for (Event e : events) {
-                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
-                                e.getId(),
-                                e.getName(),
-                                e.getDescription(),
-                                e.getType(),
-                                e.getLocation(),
-                                sdf.format(e.getDate())
-                        );
+                        eventsList.append(String.format("%-10d | %-20s | %-30s | %-15s | %-20s | %-15s\n",
+                                e.getId(), e.getName(), e.getDescription(), e.getType(), e.getLocation(), sdf.format(e.getDate())));
                     }
+                    JOptionPane.showMessageDialog(null, eventsList.toString(), "All Events", JOptionPane.INFORMATION_MESSAGE);
                     break;
 
                 case 5:
-                    System.out.println("Enter event ID: ");
-                    int idToSearch = scanner.nextInt();
-                    scanner.nextLine();
+                    idStr = JOptionPane.showInputDialog("Enter event ID:");
+                    if (idStr == null || idStr.trim().isEmpty()) {
+                        break;  // If no ID is entered, exit the case
+                    }
+
+                    int idToSearch = Integer.parseInt(idStr.trim());
                     Event eventToSearch = eventServices.getEvent(idToSearch);
                     if (eventToSearch != null) {
-                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
-                                "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
-                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                        String eventDetails = String.format(
+                                "Event ID: %d\nEvent Name: %s\nEvent Description: %s\nEvent Type: %s\nEvent Location: %s\nEvent Date: %s",
                                 eventToSearch.getId(),
                                 eventToSearch.getName(),
                                 eventToSearch.getDescription(),
@@ -229,176 +280,206 @@ public class MenuController {
                                 eventToSearch.getLocation(),
                                 sdf.format(eventToSearch.getDate())
                         );
+                        JOptionPane.showMessageDialog(null, eventDetails, "Event Details", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        System.out.println("Event does not exist.");
+                        JOptionPane.showMessageDialog(null, "Event does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     break;
 
                 case 0:
-                    System.out.println("Returning to Admin Menu...");
+                    JOptionPane.showMessageDialog(null, "Returning to Admin Menu...", "Info", JOptionPane.INFORMATION_MESSAGE);
                     adminController();
                     break;
 
                 default:
-                    System.out.println("Invalid option. Please try again.");
+                    JOptionPane.showMessageDialog(null, "Invalid option. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
                     break;
             }
         } while (userChoice != 0);
-
-
     }
 
-    public void participantManagementController(){
+    public void participantManagementController() {
         int userChoice = -1;
-        Scanner scanner = new Scanner(System.in);
-      do {
-          System.out.println("1.Add Participant\n2.Remove a Participant\n3.Display all Participants\n0.Return to Main Menu");
-            try {
-                userChoice = scanner.nextInt();
-                scanner.nextLine();
-                switch (userChoice){
-                    case 1 :
-                        System.out.println("Enter Participant Username: ");
-                        String name = scanner.nextLine().toLowerCase().trim();
-                        UserServices userServices = new UserServices();
-                        if (!name.isEmpty()) {
-                        userServices.signUp(name);
-                        System.out.println("You have successfully added the participant");
-                        }else{
-                            System.out.println("Please enter a valid username.");
-                            participantManagementController();
-                        }
-                        break;
-                    case 2:
-                        try {
-                            System.out.println("Enter Participant ID: ");
-                            int id = scanner.nextInt();
-                            scanner.nextLine();
-                            UserServices userServices1 = new UserServices();
-                            User user = userServices1.getUser(id);
-                            if (user != null) {
-                                userServices1.deleteUser(id);
-                                System.out.println("User deleted successfully.");
-                            } else {
-                                System.out.println("User does not exist.");
-                            }
-                        } catch (Exception e) {
-                            System.err.println("An unexpected error occurred: " + e.getMessage());
-                        }
-                        break;
-
-                    case 3 :
-                        System.out.printf("%-10s %-20s\n",
-                                "Participant ID", "Participant Name");
-                        UserServices userServices2 = new UserServices();
-                        LinkedList<User> user = userServices2.getUsers();
-                        for (User u : user) {
-                            System.out.printf("%-10s %-20s\n",
-                                   u.getId(),
-                                    u.getUsername()
-                            );
-                        }
-                        break;
-                    case 0 :
-                        System.out.println("Returning to Main Menu...");
-                        adminController();
-                        break;
-                }
-            }catch (Exception e){
-                System.err.println("An error occurred: " + e.getMessage());
-            }
-      }while (userChoice!=0);
-    }
-    public void statsController(){
-        System.out.println("Enter your stats: ");
-    }
-
-    public void participantController(User user) {
-        int userChoice;
-        int userID = user.getId();
-        Scanner scanner = new Scanner(System.in);
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
         do {
-            System.out.println("1.Display Events\n2.Reserve an event\n3.Display Event Reservations\n0.Return to Main Menu");
-            userChoice = scanner.nextInt();
+            String userChoiceStr = JOptionPane.showInputDialog(
+                    "1. Add Participant\n" +
+                            "2. Remove a Participant\n" +
+                            "3. Display all Participants\n" +
+                            "0. Return to Main Menu\n\n" +
+                            "Enter your choice:");
+
+            // Handle null input (e.g., if the user cancels the input dialog)
+            if (userChoiceStr == null) {
+                return;  // Exit the method if the user cancels the input
+            }
+
+            try {
+                userChoice = Integer.parseInt(userChoiceStr.trim());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                continue;  // Restart the loop if the input is invalid
+            }
+
+            UserServices userServices = new UserServices();
 
             switch (userChoice) {
                 case 1:
-                    System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
-                            "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
+                    String name = JOptionPane.showInputDialog("Enter Participant Username:").toLowerCase().trim();
+                    if (name != null && !name.isEmpty()) {
+                        userServices.signUp(name);
+                        JOptionPane.showMessageDialog(null, "You have successfully added the participant.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Please enter a valid username.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    break;
 
-                    EventServices eventServices = new EventServices();
+                case 2:
+                    String idStr = JOptionPane.showInputDialog("Enter Participant ID:");
+                    if (idStr != null && !idStr.trim().isEmpty()) {
+                        try {
+                            int id = Integer.parseInt(idStr.trim());
+                            User user = userServices.getUser(id);
+                            if (user != null) {
+                                userServices.deleteUser(id);
+                                JOptionPane.showMessageDialog(null, "User deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            } else {
+                                JOptionPane.showMessageDialog(null, "User does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        } catch (NumberFormatException e) {
+                            JOptionPane.showMessageDialog(null, "Invalid ID format. Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Please enter a valid Participant ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                    break;
+
+                case 3:
+                    StringBuilder participantsList = new StringBuilder("Participant ID | Participant Name\n");
+                    LinkedList<User> users = userServices.getUsers();
+                    for (User u : users) {
+                        participantsList.append(String.format("%-10d | %-20s\n", u.getId(), u.getUsername()));
+                    }
+                    JOptionPane.showMessageDialog(null, participantsList.toString(), "All Participants", JOptionPane.INFORMATION_MESSAGE);
+                    break;
+
+                case 0:
+                    JOptionPane.showMessageDialog(null, "Returning to Main Menu...", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    adminController();
+                    break;
+
+                default:
+                    JOptionPane.showMessageDialog(null, "Invalid option. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                    break;
+            }
+        } while (userChoice != 0);
+    }
+
+    public void statsController(){
+         JOptionPane.showInputDialog("Enter your stats: ");
+    }
+
+    public void participantController(User user) {
+        int userChoice = 0;
+        int userID = user.getId();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        do {
+            String userChoiceStr = JOptionPane.showInputDialog(
+                    "1. Display Events\n" +
+                            "2. Reserve an Event\n" +
+                            "3. Display Event Reservations\n" +
+                            "0. Return to Main Menu\n\n" +
+                            "Enter your choice:");
+
+            // Handle null input (e.g., if the user cancels the input dialog)
+            if (userChoiceStr == null) {
+                return;  // Exit the method if the user cancels the input
+            }
+
+            try {
+                userChoice = Integer.parseInt(userChoiceStr.trim());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                continue;  // Restart the loop if the input is invalid
+            }
+
+            EventServices eventServices = new EventServices();
+
+            switch (userChoice) {
+                case 1:
                     LinkedList<Event> events = eventServices.getEvents();
 
                     if (events == null) {
-                        System.out.println("No events found. The event list is null.");
+                        JOptionPane.showMessageDialog(null, "No events found. The event list is null.", "Information", JOptionPane.INFORMATION_MESSAGE);
                     } else if (events.isEmpty()) {
-                        System.out.println("No events found. The event list is empty.");
+                        JOptionPane.showMessageDialog(null, "No events found. The event list is empty.", "Information", JOptionPane.INFORMATION_MESSAGE);
                     } else {
+                        StringBuilder eventsList = new StringBuilder("Event ID | Event Name | Event Description | Event Type | Event Location | Event Date\n");
                         for (Event e : events) {
-                            System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
+                            eventsList.append(String.format("%-10d | %-20s | %-30s | %-15s | %-20s | %-15s\n",
                                     e.getId(),
                                     e.getName(),
                                     e.getDescription(),
                                     e.getType(),
                                     e.getLocation(),
-                                    sdf.format(e.getDate())
-                            );
+                                    sdf.format(e.getDate())));
                         }
+                        JOptionPane.showMessageDialog(null, eventsList.toString(), "Available Events", JOptionPane.INFORMATION_MESSAGE);
                     }
                     break;
+
                 case 2:
-                    try {
-                        System.out.println("Enter Event ID: ");
-                        int eventID = scanner.nextInt();
-                        EventServices event = new EventServices();
-                        Event event1 = event.getEvent(eventID);
-                        if (event1 != null) {
-                            ReservationServices reservationServices = new ReservationServices();
-                            reservationServices.reserveEvent(userID, eventID);
-                            System.out.println("the Event was reserved successfully.");
-                        }else {
-                            System.out.println("Event does not exist.");
-                        }
-                    }catch (Exception e){
-                        System.out.println(e.getMessage());
-                    }
-                    break;
-                case 3:
-                    try {
-                        System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
-                                "Event ID", "Event Name", "Event Description", "Event Type", "Event Location", "Event Date");
+                    String eventIDStr = JOptionPane.showInputDialog("Enter Event ID:");
 
-                        LinkedList<Event> reservedEvents = getEvents(userID);
-
-                        if (reservedEvents.isEmpty()) {
-                            System.out.println("You have no reserved events.");
-                        } else {
-                            for (Event e : reservedEvents) {
-                                System.out.printf("%-10s %-20s %-30s %-15s %-20s %-15s\n",
-                                        e.getId(),
-                                        e.getName(),
-                                        e.getDescription(),
-                                        e.getType(),
-                                        e.getLocation(),
-                                        sdf.format(e.getDate())
-                                );
+                    if (eventIDStr != null && !eventIDStr.trim().isEmpty()) {
+                        try {
+                            int eventID = Integer.parseInt(eventIDStr.trim());
+                            Event event = eventServices.getEvent(eventID);
+                            if (event != null) {
+                                ReservationServices reservationServices = new ReservationServices();
+                                reservationServices.reserveEvent(userID, eventID);
+                                JOptionPane.showMessageDialog(null, "The event was reserved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Event does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
                             }
+                        } catch (NumberFormatException e) {
+                            JOptionPane.showMessageDialog(null, "Invalid Event ID format. Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
                         }
-                    } catch (Exception e) {
-                        System.out.println("An error occurred: " + e.getMessage());
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Please enter a valid Event ID.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     break;
-                case 0:
-                    System.out.println("Returning to Main Menu...");
+
+                case 3:
+                    LinkedList<Event> reservedEvents = getEvents(userID);
+
+                    if (reservedEvents.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "You have no reserved events.", "Information", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        StringBuilder reservedEventsList = new StringBuilder("Event ID | Event Name | Event Description | Event Type | Event Location | Event Date\n");
+                        for (Event e : reservedEvents) {
+                            reservedEventsList.append(String.format("%-10d | %-20s | %-30s | %-15s | %-20s | %-15s\n",
+                                    e.getId(),
+                                    e.getName(),
+                                    e.getDescription(),
+                                    e.getType(),
+                                    e.getLocation(),
+                                    sdf.format(e.getDate())));
+                        }
+                        JOptionPane.showMessageDialog(null, reservedEventsList.toString(), "Your Reserved Events", JOptionPane.INFORMATION_MESSAGE);
+                    }
                     break;
+
+                case 0:
+                    JOptionPane.showMessageDialog(null, "Returning to Main Menu...", "Information", JOptionPane.INFORMATION_MESSAGE);
+                    break;
+
                 default:
-                    System.out.println("Invalid choice. Please try again.");
+                    JOptionPane.showMessageDialog(null, "Invalid choice. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                    break;
             }
         } while (userChoice != 0);
-
-        scanner.close();
     }
 
     private static LinkedList<Event> getEvents(int userID) {
